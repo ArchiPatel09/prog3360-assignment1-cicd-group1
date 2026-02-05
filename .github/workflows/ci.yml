@@ -40,26 +40,71 @@ jobs:
       - name: Start Services with Docker Compose
         run: |
           docker-compose up -d
-          sleep 30
+          echo "Waiting for services to start..."
+          sleep 45
 
       - name: Verify Services
         run: |
-          echo "Testing services..."
-          curl -f http://localhost:8081/actuator/health || exit 1
-          curl -f http://localhost:8082/actuator/health || exit 1
+          echo "Testing service APIs..."
+          
+          echo "Testing Product Service on port 8081..."
+          for i in {1..10}; do
+            if curl -s http://localhost:8081/api/products > /dev/null; then
+              echo "✅ Product Service is responding!"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "❌ Product Service failed to respond"
+              docker-compose logs product-service
+              exit 1
+            fi
+            echo "Attempt $i failed, waiting 3 seconds..."
+            sleep 3
+          done
+          
+          echo "Testing Order Service on port 8082..."
+          for i in {1..10}; do
+            if curl -s http://localhost:8082/api/orders > /dev/null; then
+              echo "✅ Order Service is responding!"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "❌ Order Service failed to respond"
+              docker-compose logs order-service
+              exit 1
+            fi
+            echo "Attempt $i failed, waiting 3 seconds..."
+            sleep 3
+          done
 
       - name: Integration Test
         run: |
           echo "Running integration test..."
-          # Create product
-          curl -X POST http://localhost:8081/api/products \
-            -H "Content-Type: application/json" \
-            -d '{"name": "Test", "price": 10, "quantity": 100}'
           
-          # Simple test - just check APIs work
+          echo "Creating a test product..."
+          PRODUCT_RESPONSE=$(curl -s -X POST http://localhost:8081/api/products \
+            -H "Content-Type: application/json" \
+            -d '{"name": "GitHub Action Test", "price": 19.99, "quantity": 100}')
+          echo "Product created: $PRODUCT_RESPONSE"
+          
+          PRODUCT_ID=$(echo $PRODUCT_RESPONSE | grep -o '"id":[0-9]*' | cut -d':' -f2)
+          echo "Product ID: $PRODUCT_ID"
+          
+          echo "Creating an order..."
+          ORDER_RESPONSE=$(curl -s -X POST http://localhost:8082/api/orders \
+            -H "Content-Type: application/json" \
+            -d "{\"productId\": $PRODUCT_ID, \"quantity\": 3}")
+          echo "Order created: $ORDER_RESPONSE"
+          
+          echo "Verifying data..."
           curl -f http://localhost:8081/api/products || exit 1
           curl -f http://localhost:8082/api/orders || exit 1
-          echo "✅ Integration test passed!"
+          
+          echo "✅ All tests passed!"
+
+      - name: Show Docker Logs
+        if: always()
+        run: docker-compose logs --tail=20
 
       - name: Stop Services
         if: always()
