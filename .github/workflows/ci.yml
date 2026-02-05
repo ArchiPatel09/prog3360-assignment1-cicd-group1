@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["master", "main"]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build and Test Product Service
+        run: |
+          cd product-service
+          mvn -B test
+          mvn -B -DskipTests package
+
+      - name: Build and Test Order Service
+        run: |
+          cd order-service
+          mvn -B test
+          mvn -B -DskipTests package
+
+      - name: Build with Docker Compose
+        run: docker-compose build
+
+      - name: Test with Docker Compose
+        run: |
+          docker-compose up -d
+          sleep 30
+          
+          # Verify services
+          curl -f http://localhost:8081/actuator/health
+          curl -f http://localhost:8082/actuator/health
+          
+          # Test APIs
+          curl -f http://localhost:8081/api/products
+          curl -f http://localhost:8082/api/orders
+          
+          # Integration test
+          PRODUCT=$(curl -s -X POST http://localhost:8081/api/products \
+            -H "Content-Type: application/json" \
+            -d '{"name": "Test", "price": 10, "quantity": 100}')
+          PRODUCT_ID=$(echo $PRODUCT | sed -n 's/.*"id":\([0-9]*\).*/\1/p')
+          
+          curl -s -X POST http://localhost:8082/api/orders \
+            -H "Content-Type: application/json" \
+            -d "{\"productId\": $PRODUCT_ID, \"quantity\": 2}"
+          
+          docker-compose down
