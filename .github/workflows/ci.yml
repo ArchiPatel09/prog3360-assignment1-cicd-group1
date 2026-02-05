@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
 
 jobs:
   build-deploy:
@@ -31,30 +33,32 @@ jobs:
           mvn -B test
           mvn -B -DskipTests package
 
-      - name: Build with Docker Compose
-        run: docker-compose build
-
-      - name: Test with Docker Compose
+      - name: Build Docker Images
         run: |
-          docker-compose up -d
-          sleep 30
-          
-          # Verify services
+          docker build -t assignment1-product-service ./product-service
+          docker build -t assignment1-order-service ./order-service
+
+      - name: Start Services
+        run: |
+          docker compose up -d
+          sleep 30  # wait for Spring Boot apps to start
+
+      - name: Verify Services
+        run: |
           curl -f http://localhost:8081/actuator/health
           curl -f http://localhost:8082/actuator/health
-          
-          # Test APIs
           curl -f http://localhost:8081/api/products
           curl -f http://localhost:8082/api/orders
-          
-          # Integration test
+
+      - name: Integration Test
+        run: |
           PRODUCT=$(curl -s -X POST http://localhost:8081/api/products \
             -H "Content-Type: application/json" \
             -d '{"name": "Test", "price": 10, "quantity": 100}')
           PRODUCT_ID=$(echo $PRODUCT | sed -n 's/.*"id":\([0-9]*\).*/\1/p')
-          
           curl -s -X POST http://localhost:8082/api/orders \
             -H "Content-Type: application/json" \
             -d "{\"productId\": $PRODUCT_ID, \"quantity\": 2}"
-          
-          docker-compose down
+
+      - name: Stop Services
+        run: docker compose down
