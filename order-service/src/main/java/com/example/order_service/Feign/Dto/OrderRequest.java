@@ -2,6 +2,7 @@ package com.example.order_service.Feign.Dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+// rejecting unknown json fields
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class OrderRequest {
     private Long id;
@@ -9,9 +10,11 @@ public class OrderRequest {
     private int quantity;
     private String status;
 
+    // default constructor
     public OrderRequest() {
     }
 
+    // parameterized constructor
     public OrderRequest(Long id, Long productId, int quantity, String status) {
         this.id = id;
         this.productId = productId;
@@ -19,6 +22,7 @@ public class OrderRequest {
         this.status = status;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

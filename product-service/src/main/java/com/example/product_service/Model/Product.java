@@ -3,8 +3,10 @@ package com.example.product_service.Model;
 import jakarta.persistence.*;
 
 @Entity
+// mapping this entity to the "products" table in the database
 @Table(name = "products")
 public class Product {
+    // declarations
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -13,15 +15,17 @@ public class Product {
     private double price;
     private int quantity;
 
+    // constructors
     public Product() {
     }
+
     public Product(String name, double price, int quantity) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
     }
 
-
+    // getters and setters
     public Long getId() {
         return id;
     }

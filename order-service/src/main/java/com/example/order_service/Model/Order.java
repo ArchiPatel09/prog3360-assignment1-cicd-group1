@@ -3,8 +3,10 @@ package com.example.order_service.Model;
 import jakarta.persistence.*;
 
 @Entity
+// mapping this entity to the "orders" table in the database
 @Table(name = "orders")
 public class Order {
+    // declarations
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,6 +16,7 @@ public class Order {
     private Double totalPrice;
     private String status;
 
+    // default constructor
     public Order() {
 
     }
@@ -25,6 +28,7 @@ public class Order {
         this.status = status;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

@@ -6,9 +6,11 @@ public class ProductDto {
     private Double price;
     private int quantity;
 
+    // default constructor
     public ProductDto() {
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

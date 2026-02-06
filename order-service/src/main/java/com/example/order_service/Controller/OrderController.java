@@ -16,16 +16,19 @@ public class OrderController {
         this.service = service;
     }
 
+    // fetching all orders from the service
     @GetMapping
     public List<Order> getAllOrders(){
         return service.getAllOrders();
     }
 
+    // retrieving a specific order by ID
     @GetMapping("/{id}")
     public Order getOrderById(@PathVariable Long id){
         return service.getOrderById(id);
     }
 
+    // creating a new order with the provided request data
     @PostMapping
     public Order createOrder(@RequestBody OrderRequest orderRequest){
         return service.createOrder(orderRequest);
