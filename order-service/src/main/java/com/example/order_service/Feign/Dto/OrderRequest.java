@@ -1,14 +1,30 @@
 package com.example.order_service.Feign.Dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class OrderRequest {
+    private Long id;
     private Long productId;
     private int quantity;
+    private String status;
 
     public OrderRequest() {
     }
-    public OrderRequest(Long productId, int quantity) {
+
+    public OrderRequest(Long id, Long productId, int quantity, String status) {
+        this.id = id;
         this.productId = productId;
         this.quantity = quantity;
+        this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getProductId() {
@@ -25,5 +41,13 @@ public class OrderRequest {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

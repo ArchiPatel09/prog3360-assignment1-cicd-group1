@@ -6,6 +6,7 @@ import com.example.order_service.Feign.ProductServiceClient;
 import com.example.order_service.Model.Order;
 import com.example.order_service.Repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,32 +20,33 @@ public class OrderService {
         this.productServiceClient = productServiceClient;
     }
 
-    public List<Order> getAllOrders(){
+    public List<Order> getAllOrders() {
         return repository.findAll();
     }
 
-    public Order getOrderById(Long id){
+    public Order getOrderById(Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    public Order createOrder(OrderRequest orderRequest){
+    @Transactional
+    public Order createOrder(OrderRequest orderRequest) {
         ProductDto product = productServiceClient.getProductById(orderRequest.getProductId());
 
-        if(product == null){
+        if (product == null) {
             throw new RuntimeException("Product not found");
         }
 
-        if(product.getQuantity() < orderRequest.getQuantity()){
+        if (product.getQuantity() < orderRequest.getQuantity()) {
             throw new RuntimeException("Not enough stock available!");
         }
 
-        double totalPrice = product.getPrice() * orderRequest.getQuantity();
+        double calculatedTotalPrice = product.getPrice() * orderRequest.getQuantity();
 
         Order order = new Order(
                 orderRequest.getProductId(),
                 orderRequest.getQuantity(),
-                totalPrice,
-                "PENDING"
+                calculatedTotalPrice,
+                orderRequest.getStatus()
         );
 
         return repository.save(order);

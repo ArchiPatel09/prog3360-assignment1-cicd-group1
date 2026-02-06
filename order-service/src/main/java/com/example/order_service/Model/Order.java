@@ -11,7 +11,7 @@ public class Order {
 
     private Long productId;
     private int quantity;
-    private double totalPrice;
+    private Double totalPrice;
     private String status;
 
     public Order() {

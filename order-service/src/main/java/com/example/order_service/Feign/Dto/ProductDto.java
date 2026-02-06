@@ -3,17 +3,11 @@ package com.example.order_service.Feign.Dto;
 public class ProductDto {
     private Long id;
     private String name;
-    private double price;
+    private Double price;
     private int quantity;
 
     public ProductDto() {
     }
-//    public ProductDto(Long id, String name, double price, int quantity) {
-//        this.id = id;
-//        this.name = name;
-//        this.price = price;
-//        this.quantity = quantity;
-//    }
 
     public Long getId() {
         return id;
